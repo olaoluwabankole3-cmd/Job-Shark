@@ -30,24 +30,21 @@ Production build:
     npm run build
     npm run preview
 
-## Deploy to Cloudflare Pages
-1. Open Cloudflare dashboard → Workers & Pages.
-2. Choose Create application → Pages → Connect to Git.
-3. Connect GitHub and choose olaoluwabankole3-cmd/Job-Shark.
-4. Build settings:
-   - Framework preset: Vite
-   - Build command: npm run build
-   - Build output directory: dist
-5. Deploy.
+## Frontend deployment
+The current frontend is deployed as a Cloudflare Worker with Vite static assets (not as a Pages project).
 
-Pushes to the connected branch can trigger new deployments.
+- Live app: https://job-shark.olaoluwabankole3.workers.dev
+- Source repository: https://github.com/olaoluwabankole3-cmd/Job-Shark
+- The connected Cloudflare build watches the `main` branch and runs `npm run build` followed by `npx wrangler deploy`.
+
+Pushes to `main` can trigger a new build and deployment. Check the GitHub Actions workflow before assuming a deployment succeeded.
 
 ## Backend scaffold added
 A starter Cloudflare Worker now lives in `worker/`:
 - `worker/src/index.ts` exposes read-only `/` and `/health` routes.
 - `worker/wrangler.toml` contains the Worker configuration and a placeholder for D1 binding.
 - `worker/schema.sql` defines the initial profile, job and application-event tables.
-- The API intentionally does not expose job/profile reads or writes yet. Authentication and user-level access controls must be implemented before those endpoints are enabled.
+- The API intentionally does not expose job/profile reads or writes yet. Authentication and user-level access controls must be implemented before those endpoints are enabled. Keep this API as a separate `job-shark-api` Worker; do not replace the existing `job-shark` frontend Worker.
 
 ### Local Worker preview
 From the repository root:
@@ -56,7 +53,7 @@ From the repository root:
     npm install
     npx wrangler dev
 
-The local Worker preview should expose `/health` on the URL printed by Wrangler. This scaffold has not yet been deployed to Cloudflare.
+The local Worker preview should expose `/health` on the URL printed by Wrangler. The API Worker is a separate scaffold and has not yet been deployed. The existing frontend deployment is live, but job records are still stored in the browser.
 
 ## Planned roadmap
 1. Add authentication and user-scoped API access before connecting private records.
@@ -70,8 +67,8 @@ The local Worker preview should expose `/health` on the URL printed by Wrangler.
 9. Add audit logs, scheduled discovery and follow-up reminders.
 
 ## Architecture direction
-- Frontend: Vite + React on Cloudflare Pages.
-- API and scheduled discovery: Cloudflare Workers.
+- Frontend: Vite + React static assets served by the existing `job-shark` Cloudflare Worker.
+- API and scheduled discovery: a separate Cloudflare Worker named `job-shark-api`.
 - Relational records: Cloudflare D1.
 - Private CV documents: Cloudflare R2 with access controls.
 - Browser automation: separate Playwright runner, initially on Windows or another suitable runtime. Cloudflare Pages/Workers alone are not a general desktop Chromium runtime.
