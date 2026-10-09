@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Activity, ArrowUpRight, Bell, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ExternalLink, FileCheck2, FileText, Filter, Globe2, LayoutDashboard, ListChecks, MapPin, Plus, Search, Settings2, ShieldCheck, Sparkles, Target, UploadCloud, X } from "lucide-react";
+import { Activity, Bell, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, ExternalLink, FileCheck2, FileText, Filter, Globe2, LayoutDashboard, ListChecks, MapPin, Plus, Search, Settings2, ShieldCheck, Sparkles, Target, UploadCloud, X } from "lucide-react";
 
 type Status = "Discovered" | "Needs review" | "Approved" | "Submitted" | "Interview" | "Rejected";
 type Job = { id:string; title:string; company:string; location:string; type:string; salary:string; source:string; score:number; eligibility:string; skills:string[]; url:string; status:Status; demo?:boolean };
