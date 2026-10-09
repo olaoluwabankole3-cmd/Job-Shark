@@ -1,42 +1,41 @@
 # Job-Shark API Worker setup
 
-This is the backend Worker. It must remain separate from the existing `job-shark` frontend Worker.
+This backend Worker is separate from the existing `job-shark` frontend Worker. Never deploy this configuration over the frontend Worker.
 
-## 1. Create a dedicated D1 database
+## Database
 
-In Cloudflare Dashboard, open **Storage & databases → D1 SQL Database** and create a database named `job-shark-db`.
+The dedicated D1 database `job-shark-db` is configured in `wrangler.toml`. The schema in `schema.sql` creates `user_profiles`, `job_opportunities`, and `application_events`. Apply schema statements in the Cloudflare D1 Console if running the entire file as one request fails.
 
-Do not select or reuse any database belonging to another project.
+## Authentication is required
 
-## 2. Apply the schema
+All `/api/*` routes require a valid Cloudflare Access JWT. The Worker validates the JWT signature using Cloudflare Access public keys and checks the issuer, audience, and expiry. It derives the owner ID from the verified token's `sub` claim; clients cannot choose a different user ID.
 
-From the repository root, install the Worker dependencies and apply the SQL file to the new database:
+Before deploying the API, create a Cloudflare Access self-hosted application for the API hostname and an allow policy for the intended users. From the Access application, copy its **Application Audience (AUD) Tag**. Find the team domain in Cloudflare Zero Trust settings.
 
-```bash
-cd worker
-npm install
-npx wrangler d1 execute job-shark-db --remote --file=schema.sql
-```
+Configure these non-secret Worker variables in the `job-shark-api` Worker:
+- `ACCESS_TEAM_DOMAIN`: the team domain only, such as `example.cloudflareaccess.com` (without `https://`).
+- `ACCESS_AUD`: the Access application's audience tag.
+- `FRONTEND_ORIGIN`: `https://job-shark.olaoluwabankole3.workers.dev`.
 
-If Wrangler reports that the database name is not configured, create it with `npx wrangler d1 create job-shark-db` and copy the returned database ID into the `[[d1_databases]]` section of `wrangler.toml`.
+Do not put API tokens or private credentials in the repository or frontend variables. Until `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are configured, the API fails closed and returns 503 for protected routes. `/health` remains public and reports whether auth is configured.
 
-## 3. Configure access before storing personal records
+## Deploy separately
 
-The current API deliberately exposes only a health check. Do not add public profile or job endpoints until authentication is implemented and enforced server-side. CORS is not authentication. Never place Cloudflare API tokens, CVs, or other secrets in frontend environment variables.
+In Cloudflare Workers Builds, create a separate Worker build for this repository:
+- Worker name: `job-shark-api`
+- Branch: `main`
+- Root directory: `worker`
+- Build command: `npm install && npm run typecheck`
+- Deploy command: `npx wrangler deploy`
 
-## 4. Deploy separately
+Alternatively, deploy from the `worker` directory with Wrangler. Ensure Cloudflare's deployment uses `worker/wrangler.toml`, not the root frontend configuration. The existing frontend Worker `job-shark` must remain untouched.
 
-After the database binding and authentication are configured, deploy from this directory:
+## Endpoints currently implemented
 
-```bash
-npx wrangler deploy
-```
+- `GET /health`: public health/configuration check.
+- `GET /api/profile`, `PUT /api/profile`: authenticated profile access.
+- `GET /api/jobs`: list only the authenticated user's jobs; optional `?status=`.
+- `POST /api/jobs`: create a job for the authenticated user.
+- `PATCH /api/jobs/:id`, `DELETE /api/jobs/:id`: update/delete only jobs owned by the authenticated user.
 
-This deploys `job-shark-api`; it must not replace the existing `job-shark` frontend Worker.
-
-## Current limitations
-
-- The frontend still uses browser `localStorage`; records do not sync across devices.
-- D1 tables are defined in `schema.sql`, but private CRUD endpoints are not enabled.
-- No live job feed or application submission automation is active.
-- Human approval must remain a required checkpoint before any application is finally submitted.
+The frontend still uses localStorage until it is explicitly integrated with this API. No live job feed or final application submission automation is active. Human approval must remain required before any application is finally submitted.
