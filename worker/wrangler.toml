@@ -1,0 +1,16 @@
+name = "job-shark-api"
+main = "src/index.ts"
+compatibility_date = "2026-10-09"
+
+[vars]
+APP_ENV = "production"
+
+# Before enabling database-backed endpoints:
+# 1. Create a D1 database with: npx wrangler d1 create job-shark-db
+# 2. Replace DATABASE_ID below with the returned database_id.
+# 3. Uncomment the d1_databases block.
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "job-shark-db"
+# database_id = "REPLACE_WITH_REAL_DATABASE_ID"
