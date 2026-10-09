@@ -13,3 +13,7 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build
+      - name: Install API Worker dependencies
+        run: npm install --prefix worker
+      - name: Typecheck API Worker
+        run: npm run typecheck --prefix worker
