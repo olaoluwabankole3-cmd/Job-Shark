@@ -42,14 +42,32 @@ Production build:
 
 Pushes to the connected branch can trigger new deployments.
 
+## Backend scaffold added
+A starter Cloudflare Worker now lives in `worker/`:
+- `worker/src/index.ts` exposes read-only `/` and `/health` routes.
+- `worker/wrangler.toml` contains the Worker configuration and a placeholder for D1 binding.
+- `worker/schema.sql` defines the initial profile, job and application-event tables.
+- The API intentionally does not expose job/profile reads or writes yet. Authentication and user-level access controls must be implemented before those endpoints are enabled.
+
+### Local Worker preview
+From the repository root:
+
+    cd worker
+    npm install
+    npx wrangler dev
+
+The local Worker preview should expose `/health` on the URL printed by Wrangler. This scaffold has not yet been deployed to Cloudflare.
+
 ## Planned roadmap
-1. Define screening rules for location/work authorization, remote restrictions, work type, experience, skills and salary.
-2. Connect permitted job feeds/APIs, preserve source URLs and deduplicate stale listings.
-3. Add an API and Cloudflare D1 for durable records.
-4. Add private CV storage and tailored application document preparation.
-5. Add an application review screen showing the exact job, CV and answers before approval.
-6. Add Playwright-assisted browser form filling in a separate supported runtime; pause before final submission and respect site terms, CAPTCHA and anti-bot requirements.
-7. Add authentication, audit logs, scheduled discovery and follow-up reminders.
+1. Add authentication and user-scoped API access before connecting private records.
+2. Create a D1 database and apply the schema in `worker/schema.sql`.
+3. Connect the dashboard to the authenticated API and migrate from browser-only storage.
+4. Define screening rules for location/work authorization, remote restrictions, work type, experience, skills and salary.
+5. Connect permitted job feeds/APIs, preserve source URLs and deduplicate stale listings.
+6. Add private CV storage and tailored application document preparation.
+7. Add an application review screen showing the exact job, CV and answers before approval.
+8. Add Playwright-assisted browser form filling in a separate supported runtime; pause before final submission and respect site terms, CAPTCHA and anti-bot requirements.
+9. Add audit logs, scheduled discovery and follow-up reminders.
 
 ## Architecture direction
 - Frontend: Vite + React on Cloudflare Pages.
